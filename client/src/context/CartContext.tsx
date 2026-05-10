@@ -14,7 +14,7 @@ interface CartContextType {
 
 const cartContext = createContext<CartContextType | undefined>(undefined)
 
-export function cartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>(() => {
         const saved = localStorage.getItem("app_cart")
         return saved ? JSON.parse(saved) : []
@@ -40,15 +40,43 @@ export function cartProvider({ children }: { children: ReactNode }) {
         
         setIsCartOpen(true);
     }
+
+    const removeFromCart = (productId : string) => {
+        setItems((prev) => prev.filter((item) => item.product._id !== productId))
+    }
+
+    const updateQuantity = (productId : string, quantity : number) => {
+        if (quantity <= 0) {
+            removeFromCart(productId)
+            return;
+        }
+
+        setItems((prev) => prev.map((item) => (item.product._id === productId ? {...item, quantity} : item)))
+    }
+
+    const clearCart = () => {
+        setItems([])
+        setIsCartOpen(false)
+    }
+
+    const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
+    const cartTotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+    const currency : string = import.meta.env.VITE_CURRENCY_SYMBOL || "Rs."
     
     
     
     
     const value = {
         items,
-        setItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        cartCount,
+        cartTotal,
         isCartOpen,
-        setIsCartOpen
+        setIsCartOpen,
+        currency
     }
 
 
