@@ -9,6 +9,7 @@ import uploadRouter from './src/routes/upload.routes.js';
 import orderRouter from './src/routes/order.routes.js';
 import addressRouter from './src/routes/address.routes.js';
 import adminRouter from './src/routes/admin.routes.js';
+import deliveryPartnerRouter from './src/routes/deliveryPartner.routes.js';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/upload', uploadRouter)
 app.use('/api/orders', orderRouter)
 app.use('/api/addresses', addressRouter)
 app.use('/api/admin', adminRouter)
+app.use('/api/delivery', deliveryPartnerRouter)
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 // Error Handling
