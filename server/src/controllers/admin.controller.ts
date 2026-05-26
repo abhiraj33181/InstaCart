@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
  * Get Admin Dashboard Data
  */
 export const getAdminStats = async (req: Request, res: Response) => {
-    const [totalOrders, totalUser, totalProducts, outOfStock, totalPartners, recentOrders] = await Promise.all([
+    const [totalOrders, totalUsers, totalProducts, outOfStock, totalPartners, recentOrders] = await Promise.all([
         prisma.order.count({
             where: { NOT: [{ paymentMethod: 'card', isPaid: false }] }
         }),
@@ -29,17 +29,28 @@ export const getAdminStats = async (req: Request, res: Response) => {
 
     ])
 
-    res.json({ totalOrders, totalUser, totalProducts, outOfStock, totalPartners, recentOrders })
+    res.json({ totalOrders, totalUsers, totalProducts, outOfStock, totalPartners, recentOrders })
 }
 
 /**
  * Get delivery partners list for admin
  */
 export const getDeliveryPartners = async (req: Request, res: Response) => {
-    const partners = await prisma.deliveryPartner.findMany({
-        orderBy: { createdAt: 'desc' }
-    })
-}
+    try {
+        const partners = await prisma.deliveryPartner.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json({
+            partners
+        });
+
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
 
 /**
  * Create delivery partner profile
@@ -78,7 +89,7 @@ export const updateDeliveryPartner = async (req: Request, res: Response) => {
     if (name) data.name = name;
     if (phone) data.phone = phone;
     if (vehicleType) data.vehicleType = vehicleType;
-    if (isActive) data.isActive = isActive;
+    data.isActive = isActive;
 
     try {
         const partner = await prisma.deliveryPartner.update({
