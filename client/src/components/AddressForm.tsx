@@ -1,6 +1,6 @@
 import { XIcon } from "lucide-react";
 
-const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId }: any) => {
+const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId, saving }: any) => {
     return (
         <>
             <div className="fixed inset-0 bg-black/40 z-50" />
@@ -59,8 +59,12 @@ const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId }: any)
                     </div>
 
                     {/* submit button */}
-                    <button type="submit" className="mt-6 w-full py-3 bg-app-green text-white font-semibold rounded-xl hover:bg-app-green-light transition-colors">
-                        {editingId ? "Update Address" : "Save Address"}
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className={`mt-6 w-full py-3 bg-app-green text-white font-semibold rounded-xl transition-colors ${saving ? "opacity-70 cursor-not-allowed" : "hover:bg-app-green-light"}`}
+                    >
+                        {saving ? (editingId ? "Updating..." : "Saving...") : (editingId ? "Update Address" : "Save Address")}
                     </button>
                 </form>
             </div>

@@ -3,9 +3,10 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-    const user: any = { name: 'Abhi Raj', email: 'abhiraj@gmail.com', isAdmin: true }
+    const {user, logout} = useAuth()
     const { cartCount, setIsCartOpen } = useCart();
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -23,6 +24,7 @@ const Navbar = () => {
     }
 
     const handleLogout = () => {
+        logout()
         setUserMenuOpen(false)
         navigate('/')
     }
@@ -130,7 +132,7 @@ const Navbar = () => {
                                             </Link>
 
                                             {user?.isAdmin && (
-                                                <Link to='/admin/products' className="dropdown-link md:hidden">
+                                                <Link to='/admin' className="dropdown-link md:hidden">
                                                     <ShieldIcon size={16} className="text-app-orange-dark" />
                                                     <span className="text-app-orange-dark">Admin Panel</span>
                                                 </Link>

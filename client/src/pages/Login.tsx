@@ -2,8 +2,12 @@ import { useState } from "react"
 import { heroSectionData } from "../assets/assets"
 import { Link } from "react-router"
 import { BikeIcon, Loader2, LockIcon, MailIcon, UserIcon } from "lucide-react"
+import { useAuth } from "../context/AuthContext"
+import toast from "react-hot-toast"
 
 const Login = () => {
+  const { login, register } = useAuth();
+
   const [isLogin, setIsLogin] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -13,10 +17,19 @@ const Login = () => {
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => window.location.href = '/', 1000)
+
+    try {
+      if (isLogin) {
+        await login(email, password)
+      } else {
+        await register(name, email, password)
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message)
+    } finally {
+      setLoading(false)
+    }
   }
-
-
 
   return (
     <div className="min-h-screen flex">
@@ -77,43 +90,43 @@ const Login = () => {
             )}
 
             <label className="text-sm flex flex-col gap-1">
-                Email Address
+              Email Address
 
-                <div className="relative">
-                  <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-app-text-light" />
+              <div className="relative">
+                <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-app-text-light" />
 
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="you@example.com"
-                    className="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border not-focus:border-app-border transition-all"
-                  />
-                </div>
-              </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border not-focus:border-app-border transition-all"
+                />
+              </div>
+            </label>
 
-              <label className="text-sm flex flex-col gap-1">
-                Password
+            <label className="text-sm flex flex-col gap-1">
+              Password
 
-                <div className="relative">
-                  <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-app-text-light" />
+              <div className="relative">
+                <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-app-text-light" />
 
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                    className="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border not-focus:border-app-border transition-all"
-                  />
-                </div>
-              </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border not-focus:border-app-border transition-all"
+                />
+              </div>
+            </label>
 
 
-              <button type="submit" disabled={loading} className="flex-center w-full py-3 bg-green-950 text-white font-semibold rounded-xl hover:bg-green-900 transition-colors disabled:opacity-50">
-                {loading ? <Loader2 className="animate-spin"/> : isLogin ? 'Sign In' : 'Sign Up'}
-              </button>
+            <button type="submit" disabled={loading} className="flex-center w-full py-3 bg-green-950 text-white font-semibold rounded-xl hover:bg-green-900 transition-colors disabled:opacity-50">
+              {loading ? <Loader2 className="animate-spin" /> : isLogin ? 'Sign In' : 'Sign Up'}
+            </button>
           </form>
 
         </div>

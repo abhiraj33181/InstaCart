@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react"
 import type { Address } from "../types"
-import { dummyAddressData } from "../assets/assets"
 import { MapPinIcon, PlusIcon } from "lucide-react"
 import Loading from "../components/Loading"
 import AddressCard from "../components/AddressCard"
 import AddressForm from "../components/AddressForm"
+import { useAuth } from "../context/AuthContext"
+import api from "../config/api"
+import toast from "react-hot-toast"
 
 const Addresses = () => {
+  const { updateUser } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -34,8 +38,70 @@ const Addresses = () => {
     setEditingId(null)
   }
 
+  const getLocation = (retries = 3): Promise<{ lat: number; lng: number }> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'));
+        return;
+      }
+
+      const attempt = () => {
+        navigator.geolocation.getCurrentPosition((position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        }, (error: any) => {
+          if (retries > 0) {
+            retries--;
+            setTimeout(attempt, 1000)
+          } else {
+            reject(new Error(error.message || 'Failed to get location after retries'))
+          }
+        },
+          {
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 60000
+          }
+        )
+      }
+      attempt()
+    })
+  }
+
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true)
+
+    let coords = { lat: 0, lng: 0 }
+    try {
+      coords = await getLocation();
+    } catch (error: any) {
+      toast.error(error?.message || 'Location access denied. Saving without exact location.')
+    }
+
+    try {
+      const payload = { ...form, ...coords }
+
+      if (editingId) {
+        const { data } = await api.put(`/addresses/${editingId}`, payload)
+        setAddresses(data.addresses)
+        updateUser({ addresses: data.addresses })
+        toast.success('Address updated!')
+      } else {
+        const { data } = await api.post(`/addresses`, payload);
+        setAddresses(data.addresses)
+        updateUser({ addresses: data.addresses })
+        toast.success('Address added!')
+      }
+      resetForm()
+    } catch (error : any) {
+      toast.error(error.response?.data?.message || error.message || 'Failed')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const onEditHandler = (add: Address) => {
@@ -48,16 +114,13 @@ const Addresses = () => {
       isDefault: add.isDefault
     })
 
-    setEditingId(add._id)
+    setEditingId(add.id)
     setShowForm(true)
   }
 
   useEffect(() => {
-    setAddresses(dummyAddressData)
-
-    setTimeout(() => {
-      setLoading(false)
-    }, 2000);
+    api.get('/addresses').then(({data}) => setAddresses(data.addresses)).catch((error : any) => toast.error(error?.response?.data?.message || error?.message)).finally(() => setLoading(false))
+    
   }, [])
 
 
@@ -77,12 +140,12 @@ const Addresses = () => {
 
         {/* form modal */}
 
-        {showForm && <AddressForm resetForm={resetForm} handleSubmit={handleSubmit} form={form} setForm={setForm} editingId={editingId} />}
+  {showForm && <AddressForm resetForm={resetForm} handleSubmit={handleSubmit} form={form} setForm={setForm} editingId={editingId} saving={saving} />}
 
 
 
         {/* addresses list */}
-        {loading ? <Loading/> : addresses.length === 0 ? (
+        {loading ? <Loading /> : addresses.length === 0 ? (
           <div className="text-center py-16">
             <MapPinIcon className="size-16 text-app-border mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-app-green mb-2">
@@ -100,7 +163,7 @@ const Addresses = () => {
             ))}
 
           </div>
-        ) }
+        )}
 
       </div>
     </div>

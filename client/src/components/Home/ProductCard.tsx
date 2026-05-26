@@ -13,7 +13,7 @@ const ProductCard = ({ product }: Props) => {
     const navigate = useNavigate();
 
     return (
-        <div className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-md transition-all duration-300 group animate-dade-in cursor-pointer" onClick={() => navigate(`/products/${product._id}`)}>
+        <div className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-md transition-all duration-300 group animate-dade-in cursor-pointer" onClick={() => navigate(`/products/${product.id}`)}>
 
             {/* image  */}
             <div className="relative aspect-sqaure overflow-hidden">
