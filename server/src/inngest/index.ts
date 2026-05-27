@@ -175,7 +175,7 @@ const autoAssignRider = inngest.createFunction({
         if (!order) {
             return { skipped: true, reason: 'Order not found' }
         }
-        if (!order.deliveryPartnerId) {
+        if (order.deliveryPartnerId) {
             return { skipped: true, reason: 'Already Assigned' }
         }
         if (['Cancelled', "Delivered"].includes(order.status as string)) {
@@ -217,7 +217,7 @@ const autoAssignRider = inngest.createFunction({
                 deliveryPartnerId: availableRider.id,
                 deliveryOtp: otp,
                 status: 'Assigned',
-                statusHistory: 'history'
+                statusHistory: history
             }
         })
 

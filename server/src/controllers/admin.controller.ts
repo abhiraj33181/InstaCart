@@ -116,7 +116,7 @@ export const assignDeliveryPartner = async (req: Request, res: Response) => {
         where: { id: partnerId }
     })
 
-    const otp = String(Math.floor(1000000 + Math.random() * 9000000))
+    const otp = String(Math.floor(100000 + Math.random() * 900000))
 
     let status = order!.status;
 
@@ -132,7 +132,12 @@ export const assignDeliveryPartner = async (req: Request, res: Response) => {
 
     await prisma.order.update({
         where: { id: order!.id },
-        data: { deliveryPartnerId: partner!.id, deliveryOtp: otp, statusHistory: history }
+        data: {
+            deliveryPartnerId: partner!.id,
+            deliveryOtp: otp,
+            status,
+            statusHistory: history
+        }
     })
 
     res.json({ order })
