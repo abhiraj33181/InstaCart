@@ -9,82 +9,87 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const StripeWebhook = async (request: Request, response: Response) => {
     let event;
-    if (endpointSecret) {
-        // Get the signature sent by Stripe
-        const signature = request.headers['stripe-signature'];
-        try {
-            event = stripe.webhooks.constructEvent(
-                request.body,
-                signature as string,
-                endpointSecret
-            );
-        } catch (err: any) {
-            console.log(`⚠️ Webhook signature verification failed.`, err.message);
-            return response.sendStatus(400);
+    if (!endpointSecret) {
+        return response.status(500).json({ message: "Stripe webhook secret not configured" });
+    }
+
+    // Get the signature sent by Stripe
+    const signature = request.headers['stripe-signature'];
+    try {
+        event = stripe.webhooks.constructEvent(
+            request.body,
+            signature as string,
+            endpointSecret
+        );
+    } catch (err: any) {
+        console.log(`⚠️ Webhook signature verification failed.`, err.message);
+        return response.sendStatus(400);
+    }
+
+    const markOrderPaid = async (orderId: string) => {
+        const paidOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: { isPaid: true }
+        })
+
+        const orderItems = (Array.isArray(paidOrder.items)) ? paidOrder.items : [] as any[]
+        for (const item of orderItems) {
+            await prisma.product.update({
+                where: { id: item.product },
+                data: { stock: { decrement: item.quantity } }
+            })
         }
 
-        // Handle the event
-        switch (event.type) {
-            case 'payment_intent.succeeded':
-                const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                const paymentIntentId = paymentIntent.id;
+        await inngest.send({
+            name: 'order/placed',
+            data: { orderId }
+        })
 
-                // Getting Session Metadata
-                const session = await stripe.checkout.sessions.list({
-                    payment_intent: paymentIntentId
-                })
+        for (const item of orderItems) {
+            await inngest.send({ name: 'inventory/stock.updated', data: { productId: item.product } })
+        }
+    }
 
-                const { orderId } = session.data[0].metadata as any;
+    // Handle the event
+    switch (event.type) {
+        case 'checkout.session.completed': {
+            const session = event.data.object as Stripe.Checkout.Session;
+            const orderId = session.metadata?.orderId;
+            if (!orderId) break;
+            await markOrderPaid(orderId);
+            break;
+        }
+        case 'payment_intent.succeeded': {
+            const paymentIntent = event.data.object as Stripe.PaymentIntent;
+            const paymentIntentId = paymentIntent.id;
 
-                // Mark payment as paid
-                const paidOrder = await prisma.order.update({
-                    where: { id : orderId },
-                    data: { isPaid: true }
-                })
+            const sessions = await stripe.checkout.sessions.list({
+                payment_intent: paymentIntentId
+            })
 
-                // Decrease Stock
-                const orderItems = (Array.isArray(paidOrder.items)) ? paidOrder.items : [] as any[]
-                for (const item of orderItems) {
-                    await prisma.product.update({
-                        where: { id: item.product },
-                        data: { stock: { decrement: item.quantity } }
-                    })
-                }
+            const orderId = sessions.data[0]?.metadata?.orderId;
+            if (!orderId) break;
+            await markOrderPaid(orderId);
+            break;
+        }
+        case 'payment_intent.canceled':
+        case 'payment_intent.payment_failed': {
+            const paymentIntentFailure = event.data.object as Stripe.PaymentIntent;
+            const paymentIntentFailureId = paymentIntentFailure.id
 
-                if (paidOrder) {
-                    await inngest.send({
-                        name: 'order/placed',
-                        data: { orderId }
-                    })
-                }
+            const sessionFailure = await stripe.checkout.sessions.list({
+                payment_intent: paymentIntentFailureId
+            })
 
-                // Send stock update evenet for each productin the order
-                for (const item of orderItems) {
-                    await inngest.send({ name: 'inventory/stock.updated', data: { productId: item.product } })
-                }
-
-                break;
-            case 'payment_intent.canceled':
-            case 'payment_intent.payment_failed': {
-                const paymentIntentFailure = event.data.object as Stripe.PaymentIntent;
-
-                const paymentIntentFailureId = paymentIntentFailure.id
-
-                // Getting Session Metadata 
-                const sessionFailure = await stripe.checkout.sessions.list({
-                    payment_intent: paymentIntentFailureId
-                })
-
-                const failureOrderId = (sessionFailure.data[0].metadata as any).orderId;
-
+            const failureOrderId = sessionFailure.data[0]?.metadata?.orderId;
+            if (failureOrderId) {
                 await prisma.order.delete({ where: { id: failureOrderId } })
-                break;
             }
-
-            default:
-                console.log(`Unhandled event type ${event.type}`);
+            break;
         }
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
 
-        // Return a response to acknowledge receipt of the event
-        response.json({ received: true });
-    }}
+    response.json({ received: true });
+}
