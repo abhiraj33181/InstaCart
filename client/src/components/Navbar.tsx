@@ -30,7 +30,7 @@ const Navbar = () => {
     }
     return (
         <nav className="bg-white sticky top-0 z-50 border-b border-app-border">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-enter justify-between h-16 gap-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 gap-4">
                 {/* logo */}
 
                 <Link to='/' className="flex items-center gap-2 text-[22px] font-medium shrink-0">
@@ -57,7 +57,7 @@ const Navbar = () => {
                                 placeholder="Search for groceries..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-8 p-2 bg-orange-50 rounded-full ring ring-app-orange/15 focus:ring-app orange/30"
+                                className="w-full pl-8 p-2 bg-orange-50 rounded-full ring ring-app-orange/15 focus:ring-app-orange/30"
                             />
                         </div>
                     </form>
@@ -82,7 +82,7 @@ const Navbar = () => {
                                 </button>
                             ) : (
                                 <div className="flex-center gap-2">
-                                    <Link to='/login' className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-950 rounded-full hover:bg-green-950-light transition-colors">
+                                    <Link to='/login' className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-950 rounded-full hover:bg-green-900 transition-colors">
                                         <UserIcon size={16} /> Sign In
                                     </Link>
                                     {userMenuOpen ? <XIcon className="md:hidden" onClick={() => setUserMenuOpen(!userMenuOpen)} /> : <MenuIcon className="md:hidden" onClick={() => setUserMenuOpen(!userMenuOpen)} />}

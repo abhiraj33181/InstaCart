@@ -10,12 +10,15 @@ import orderRouter from './src/routes/order.routes.js';
 import addressRouter from './src/routes/address.routes.js';
 import adminRouter from './src/routes/admin.routes.js';
 import deliveryPartnerRouter from './src/routes/deliveryPartner.routes.js';
+import { StripeWebhook } from './src/controllers/webhooks.js';
 
 const app = express();
+app.post('/api/stripe', express.raw({ type: 'application/json' }), StripeWebhook)
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
 
 const port = process.env.PORT || 3000;
 

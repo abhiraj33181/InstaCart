@@ -14,14 +14,14 @@ const AppPromoBanner = () => {
 
                     <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                         <button className="px-6 py-3 bg-white text-green-950 font-semibold rounded-xl hover:bg-orange-100">App Store</button>
-                        <button className="px-6 py-3 bh-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/20">Google Play</button>
+                        <button className="px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/20">Google Play</button>
                     </div>
                 </div>
 
                 {/* right side image  */}
 
                 <div>
-                    <img src={assets.delivery_truck} alt='Delivery Truck' className="max-w-60 sm:max-w-120 xl:pr-10" />
+                    <img src={assets.delivery_truck} alt='Delivery Truck' className="max-w-[15rem] sm:max-w-[30rem] xl:pr-10" />
                 </div>
             </div>
 

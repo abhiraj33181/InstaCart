@@ -4,10 +4,10 @@ import { Link } from "react-router"
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden min-h-135 mb-10 rounded-3xl flex items-center">
+    <section className="relative overflow-hidden min-h-[540px] mb-10 rounded-3xl flex items-center">
         <img src={heroSectionData.hero_image} alt="Hero Image" className="absolute inset-0 h-full w-full object-cover" />
 
-        <div className="absolute inset-0 bg-linear-to-r from-app-green via-app-green/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-app-green via-app-green/65 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
 
@@ -18,7 +18,7 @@ const Hero = () => {
                 Farm-Fresh & Organic
             </span>
 
-            <h1 className="font-serif text-4xl sm:Text-5xl lg:text-6xl text-white leading-tight mb-5">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
                 Nourish your home with <span className="text-orange-300">Earth's finest</span>
             </h1>
 
