@@ -18,7 +18,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
         const result = await cloudinary.uploader.upload(dataURI, {
-            folder : 'InstaCart',
+            folder : 'SwiftCart',
             resource_type : "auto"
         })
 
